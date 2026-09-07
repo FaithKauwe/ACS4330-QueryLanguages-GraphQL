@@ -16,6 +16,7 @@ function weatherEmoji(description) {
 
 function tempColor(temp, units) {
   if (temp == null) return undefined
+// account for Frhenheit or celsius
   const freezing = units === 'metric' ? 0 : 32
   const cool = units === 'metric' ? 10 : 50
   const warm = units === 'metric' ? 24 : 75
@@ -39,6 +40,8 @@ function WeatherDisplay({ weather, units = 'imperial' }) {
         <li>Feels like: {weather.feels_like}°</li>
         <li>Humidity: {weather.humidity}%</li>
         <li>Pressure: {weather.pressure}</li>
+        <li>Lat: {weather.lat}</li>
+        <li>Lon: {weather.lon}</li>
       </ul>
     </div>
   )

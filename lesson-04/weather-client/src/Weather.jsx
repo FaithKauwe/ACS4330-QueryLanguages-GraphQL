@@ -22,6 +22,8 @@ function Weather() {
               feels_like
               humidity
               pressure
+              lat
+              lon
               # query cod and message fields so we can recognize and handle errors
               cod
               message

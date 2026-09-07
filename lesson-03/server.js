@@ -13,6 +13,8 @@ type Weather {
   temp_max: Float
   pressure: Int
   humidity: Int
+  lat: Float
+  lon: Float
   cod: Int
   message: String
 }
@@ -44,6 +46,8 @@ const resolvers = {
             temp_max: json.main?.temp_max ?? null,
             pressure: json.main?.pressure ?? null,
             humidity: json.main?.humidity ?? null,
+            lat: json.coord?.lat ?? null,
+            lon: json.coord?.lon ?? null,
             cod: Number(json.cod),
             message: json.message ?? null
           }      }
