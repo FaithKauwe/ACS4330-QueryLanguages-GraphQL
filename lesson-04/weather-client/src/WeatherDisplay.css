@@ -1,0 +1,26 @@
+.WeatherDisplay {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.WeatherDisplay .emoji {
+  font-size: 5rem;
+  line-height: 1;
+}
+
+.WeatherDisplay h1 {
+  font-size: 3rem;
+  margin: 0.25rem 0;
+}
+
+.WeatherDisplay .description {
+  text-transform: capitalize;
+  margin: 0 0 1rem;
+}
+
+.WeatherDisplay ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  color: #555;
+}
