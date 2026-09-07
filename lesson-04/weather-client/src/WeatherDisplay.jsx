@@ -14,23 +14,25 @@ function weatherEmoji(description) {
   return '🌤️'
 }
 
-// Assumes imperial °F (Lesson 3 default). Challenge 9 can refine this for metric.
-function tempColor(temp) {
+function tempColor(temp, units) {
   if (temp == null) return undefined
-  if (temp <= 32) return '#2563eb'
-  if (temp <= 50) return '#7c3aed'
-  if (temp <= 75) return '#ea580c'
+  const freezing = units === 'metric' ? 0 : 32
+  const cool = units === 'metric' ? 10 : 50
+  const warm = units === 'metric' ? 24 : 75
+  if (temp <= freezing) return '#2563eb'
+  if (temp <= cool) return '#7c3aed'
+  if (temp <= warm) return '#ea580c'
   return '#dc2626'
 }
 
-function WeatherDisplay({ weather }) {
+function WeatherDisplay({ weather, units = 'imperial' }) {
   return (
     <div className="WeatherDisplay">
       <div className="emoji" aria-hidden="true">
         {weatherEmoji(weather.description)}
       </div>
-      <h1 style={{ color: tempColor(weather.temperature) }}>
-        {weather.temperature}°
+      <h1 style={{ color: tempColor(weather.temperature, units) }}>
+        {weather.temperature}°{units === 'metric' ? 'C' : 'F'}
       </h1>
       <p className="description">{weather.description}</p>
       <ul>
