@@ -1,61 +1,55 @@
 import { useState } from 'react'
 import { gql } from '@apollo/client'
-import { client } from './apolloClient'
+import { useLazyQuery } from '@apollo/client/react'
 import WeatherDisplay from './WeatherDisplay'
 import './Weather.css'
+
+const GET_WEATHER = gql`
+  query GetWeather($zip: Int!, $units: Units) {
+    getWeather(zip: $zip, units: $units) {
+      temperature
+      description
+      feels_like
+      humidity
+      pressure
+      lat
+      lon
+      # query cod and message fields so we can recognize and handle errors
+      cod
+      message
+    }
+  }
+`
 
 function Weather() {
   const [zip, setZip] = useState('')
   const [units, setUnits] = useState('imperial')
-  const [weather, setWeather] = useState(null)
-  const [error, setError] = useState(null)
+  const [getWeather, { loading, error, data }] = useLazyQuery(GET_WEATHER, {
+    fetchPolicy: 'network-only'
+  })
 
-  async function getWeather() {
-    setError(null)
-    try {
-      const json = await client.query({
-        query: gql`
-          query GetWeather($zip: Int!, $units: Units) {
-            getWeather(zip: $zip, units: $units) {
-              temperature
-              description
-              feels_like
-              humidity
-              pressure
-              lat
-              lon
-              # query cod and message fields so we can recognize and handle errors
-              cod
-              message
-            }
-          }
-        `,
-        variables: { zip: parseInt(zip, 10), units },
-        fetchPolicy: 'network-only'
-      })
-      const result = json.data.getWeather
-      setWeather(result)
-    // check for error fields in the Weather object
-      if (Number(result.cod) !== 200) {
-        setError(result.message || 'City not found')
-      }
-    } catch (err) {
-      setWeather(null)
-      setError(err.message || 'Request failed')
-    }
-  }
+  const weather = data?.getWeather
+  const displayError =
+    error?.message ||
+    (weather && Number(weather.cod) !== 200 ? weather.message || 'City not found' : null)
 
   return (
     <div className="Weather">
-      {error ? <p className="error">{error}</p> : null}
-      {!error && weather ? (
+      {loading ? <p>Loading...</p> : null}
+      {displayError ? <p className="error">{displayError}</p> : null}
+      {!displayError && weather && Number(weather.cod) === 200 ? (
         <WeatherDisplay weather={weather} units={units} />
       ) : null}
 
       <form
         onSubmit={(e) => {
           e.preventDefault()
-          getWeather()
+          getWeather({
+            variables: {
+              zip: parseInt(zip, 10),
+              units
+            }
+          })
         }}
       >
         <input
