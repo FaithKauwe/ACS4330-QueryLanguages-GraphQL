@@ -33,7 +33,9 @@ enum Units {
 `
 const resolvers = {
     Query: {
-      getWeather: async (_, { zip, units = 'imperial' }) => {
+      getWeather: async (_, { zip, units = 'imperial' }, context) => {
+        console.log('Request at:', context.requestTime)
+        console.log('Client:', context.clientName)
         const apikey = process.env.OPENWEATHERMAP_API_KEY
         const url = `https://api.openweathermap.org/data/2.5/weather?zip=${zip}&appid=${apikey}&units=${units}`
         const res = await fetch(url)
@@ -57,7 +59,14 @@ const resolvers = {
   const server = new ApolloServer({ typeDefs, resolvers })
 
 const { url } = await startStandaloneServer(server, {
-  listen: { port: 4000 }
+  listen: { port: 4000 },
+  context: async ({ req }) => {
+    const clientName = req.headers['x-client-name'] || 'unknown'
+    return {
+      requestTime: new Date().toISOString(),
+      clientName
+    }
+  }
 })
 
 console.log(`Server ready at: ${url}`)
