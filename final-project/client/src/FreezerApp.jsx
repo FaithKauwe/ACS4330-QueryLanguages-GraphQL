@@ -191,62 +191,72 @@ function FreezerApp() {
                 <div className="interior">
                   <div className="shelf">
                     <div className="shelf-label">Look</div>
-                    <button
-                      type="button"
-                      className="pack action"
-                      style={{ background: '#f4d35e', color: '#111' }}
-                      onClick={() => openList()}
-                    >
-                      See what’s in there
-                      <small>Kitchen + garage</small>
-                    </button>
-                  </div>
-                  <div className="shelf">
-                    <div className="shelf-label">By type</div>
-                    {categories.map((c, i) => (
+                    <div className="shelf-packs">
                       <button
-                        key={c.id}
                         type="button"
                         className="pack action"
-                        style={{ background: CAT_PACK[i % CAT_PACK.length], color: '#111' }}
-                        onClick={() => openList(c)}
+                        style={{ '--lid': '#f4d35e' }}
+                        onClick={() => openList()}
                       >
-                        See {c.name.toLowerCase()}
+                        See what’s in there
+                        <small>Kitchen + garage</small>
                       </button>
-                    ))}
-                    <button
-                      type="button"
-                      className="pack action"
-                      style={{ background: '#ff6b6b', color: '#111' }}
-                      onClick={() => {
-                        runSoon({ variables: { months: 6 } })
-                        setView('soon')
-                      }}
-                    >
-                      Use these soon
-                      <small>About 6 months in</small>
-                    </button>
+                    </div>
+                  </div>
+                  <div className="shelf shelf-type">
+                    <div className="shelf-label">By type</div>
+                    <div className="shelf-packs">
+                      {categories.map((c, i) => (
+                        <button
+                          key={c.id}
+                          type="button"
+                          className={
+                            ['dessert', 'fruit'].includes(c.name.toLowerCase())
+                              ? 'pack action pack-narrow'
+                              : 'pack action'
+                          }
+                          style={{ '--lid': CAT_PACK[i % CAT_PACK.length] }}
+                          onClick={() => openList(c)}
+                        >
+                          See {c.name.toLowerCase()}
+                        </button>
+                      ))}
+                      <button
+                        type="button"
+                        className="pack action"
+                        style={{ '--lid': '#ff6b6b' }}
+                        onClick={() => {
+                          runSoon({ variables: { months: 6 } })
+                          setView('soon')
+                        }}
+                      >
+                        Use these soon
+                        <small>About 6 months in</small>
+                      </button>
+                    </div>
                   </div>
                   <div className="shelf">
                     <div className="shelf-label">Change</div>
-                    <button
-                      type="button"
-                      className="pack action"
-                      style={{ background: '#7dce82', color: '#111' }}
-                      onClick={() => setView('add')}
-                    >
-                      Add an item
-                      <small>Opens a form</small>
-                    </button>
-                    <button
-                      type="button"
-                      className="pack action"
-                      style={{ background: '#ff9f7a', color: '#111' }}
-                      onClick={() => setView('use')}
-                    >
-                      Use an item
-                      <small>Eat / toss</small>
-                    </button>
+                    <div className="shelf-packs">
+                      <button
+                        type="button"
+                        className="pack action"
+                        style={{ '--lid': '#7dce82' }}
+                        onClick={() => setView('add')}
+                      >
+                        Add an item
+                        <small>Opens a form</small>
+                      </button>
+                      <button
+                        type="button"
+                        className="pack action"
+                        style={{ '--lid': '#ff9f7a' }}
+                        onClick={() => setView('use')}
+                      >
+                        Use an item
+                        <small>Eat / toss</small>
+                      </button>
+                    </div>
                   </div>
                 </div>
                 <button

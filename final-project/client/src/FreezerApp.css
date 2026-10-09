@@ -2,11 +2,12 @@
   max-width: 72rem;
   margin: 0 auto;
   padding: 1.5rem 1rem 3rem;
-  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-family: Quicksand, system-ui, sans-serif;
 }
 
 .FreezerApp h1 {
   margin: 0 0 0.25rem;
+  font-family: Quicksand, sans-serif;
   font-weight: 700;
   letter-spacing: -0.03em;
 }
@@ -105,7 +106,7 @@
 }
 
 .unit {
-  width: min(100%, 22rem);
+  width: min(100%, 24rem);
 }
 
 .unit h2 {
@@ -117,7 +118,7 @@
 
 .cabinet {
   position: relative;
-  height: 34rem;
+  height: 40rem;
   background: linear-gradient(180deg, #2a333c 0%, #1a2026 100%);
   border: 4px solid #5c6772;
   border-radius: 8px 8px 12px 12px;
@@ -142,24 +143,37 @@
 
 .shelf {
   flex: 1;
-  min-height: 3.5rem;
+  min-height: 4.5rem;
   background: linear-gradient(#c5d0d6, #9eacb4);
   border-radius: 2px;
-  padding: 0.35rem;
+  padding: 0.35rem 0.4rem 0.4rem;
   display: flex;
-  flex-wrap: wrap;
-  align-content: flex-end;
-  gap: 0.3rem;
+  flex-direction: column;
   box-shadow: 0 2px 0 #6d7a82;
+}
+
+.shelf-type {
+  flex: 2.4;
+  min-height: 10rem;
 }
 
 .shelf-label {
   width: 100%;
+  padding-top: 1.05rem;
   font-size: 0.65rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: #3d4a52;
   font-weight: 700;
+}
+
+.shelf-packs {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-end;
+  gap: 0.55rem 0.4rem;
+  margin-top: auto;
+  padding-top: 0.75rem;
 }
 
 .FreezerApp button.pack {
@@ -243,11 +257,60 @@
   padding: 0.25rem;
 }
 
-.pack.action {
+.FreezerApp button.pack.action {
+  --lid: #f4d35e;
+  position: relative;
   min-width: 8.5rem;
   max-width: none;
-  font-size: 0.8rem;
+  margin-top: 12px;
+  margin-left: 0.2rem;
+  margin-right: 0.2rem;
   padding: 0.55rem 0.6rem;
+  font-size: 0.8rem;
+  color: #111;
+  background: #e4e8ec;
+  border-radius: 3px 3px 7px 7px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.65),
+    inset 0 -6px 8px rgba(0, 0, 0, 0.12),
+    1px 3px 0 rgba(0, 0, 0, 0.28);
+}
+
+.FreezerApp button.pack.action::before {
+  content: '';
+  position: absolute;
+  left: 1px;
+  right: 1px;
+  top: -10px;
+  height: 14px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--lid) 88%, white) 0%,
+    var(--lid) 48%,
+    color-mix(in srgb, var(--lid) 70%, black) 100%
+  );
+  border-radius: 4px 4px 2px 2px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    0 1px 2px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+}
+
+.FreezerApp button.pack.action.pack-narrow {
+  min-width: 5.25rem;
+  max-width: 6.5rem;
+}
+
+.FreezerApp button.pack.action::after {
+  content: '';
+  position: absolute;
+  left: 28%;
+  right: 28%;
+  top: -6px;
+  height: 5px;
+  background: color-mix(in srgb, var(--lid) 40%, #2a2410);
+  border-radius: 2px;
+  pointer-events: none;
 }
 
 .panel table {
