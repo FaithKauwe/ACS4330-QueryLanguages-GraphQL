@@ -4,6 +4,8 @@
 
 body {
   margin: 0;
-  background: #fafafa;
-  color: #111;
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse at top, #3d4550 0%, #1c2128 55%, #12151a 100%);
+  color: #e8eef4;
 }

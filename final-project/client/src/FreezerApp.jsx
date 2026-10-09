@@ -5,6 +5,7 @@ import {
   GET_CATEGORIES,
   GET_FREEZERS,
   ITEMS_BY_NAME,
+  EXPIRING_SOON,
   ADD_ITEM,
   DELETE_ITEM
 } from './queries'
@@ -14,9 +15,11 @@ function today() {
   return new Date().toISOString().slice(0, 10)
 }
 
+const CAT_PACK = ['#f4d35e', '#7dce82', '#6ec6ff', '#ff9f7a', '#d4a5ff', '#ffd166']
+
 function ItemTable({ items, onDelete, deleting }) {
   if (!items.length) {
-    return <p>No items.</p>
+    return <p>Nothing in here.</p>
   }
 
   return (
@@ -28,7 +31,7 @@ function ItemTable({ items, onDelete, deleting }) {
           <th>Lbs</th>
           <th>Category</th>
           <th>Freezer</th>
-          <th></th>
+          {onDelete ? <th></th> : null}
         </tr>
       </thead>
       <tbody>
@@ -39,15 +42,17 @@ function ItemTable({ items, onDelete, deleting }) {
             <td>{item.weight}</td>
             <td>{item.category?.name}</td>
             <td>{item.freezer?.name}</td>
-            <td>
-              <button
-                type="button"
-                disabled={deleting}
-                onClick={() => onDelete(item.id)}
-              >
-                Eat / toss
-              </button>
-            </td>
+            {onDelete ? (
+              <td>
+                <button
+                  type="button"
+                  disabled={deleting}
+                  onClick={() => onDelete(item.id)}
+                >
+                  Eat / toss
+                </button>
+              </td>
+            ) : null}
           </tr>
         ))}
       </tbody>
@@ -56,6 +61,8 @@ function ItemTable({ items, onDelete, deleting }) {
 }
 
 function FreezerApp() {
+  const [view, setView] = useState('home')
+  const [doorOpen, setDoorOpen] = useState(false)
   const [search, setSearch] = useState('')
   const [name, setName] = useState('')
   const [frozenOn, setFrozenOn] = useState(today())
@@ -64,12 +71,16 @@ function FreezerApp() {
   const [freezerId, setFreezerId] = useState('')
   const [formError, setFormError] = useState(null)
   const [useSearchResults, setUseSearchResults] = useState(false)
+  const [categoryFilter, setCategoryFilter] = useState(null)
 
   const itemsQuery = useQuery(GET_ITEMS)
   const categoriesQuery = useQuery(GET_CATEGORIES)
   const freezersQuery = useQuery(GET_FREEZERS)
 
   const [runSearch, searchQuery] = useLazyQuery(ITEMS_BY_NAME, {
+    fetchPolicy: 'network-only'
+  })
+  const [runSoon, soonQuery] = useLazyQuery(EXPIRING_SOON, {
     fetchPolicy: 'network-only'
   })
 
@@ -84,7 +95,14 @@ function FreezerApp() {
   const freezers = freezersQuery.data?.freezers ?? []
 
   const showingSearch = useSearchResults && searchQuery.data
-  const list = showingSearch ? searchQuery.data.itemsByName : (itemsQuery.data?.items ?? [])
+  const allItems = itemsQuery.data?.items ?? []
+  let list = allItems
+  if (categoryFilter) {
+    list = allItems.filter((i) => i.category?.id === categoryFilter.id)
+  }
+  if (showingSearch) {
+    list = searchQuery.data.itemsByName
+  }
 
   const loadError =
     itemsQuery.error?.message ||
@@ -113,20 +131,10 @@ function FreezerApp() {
       setName('')
       setWeight('')
       setFrozenOn(today())
+      setCategoryFilter(null)
+      setView('list')
     } catch (err) {
       setFormError(err.message || 'Could not add item.')
-    }
-  }
-
-  async function handleDelete(id) {
-    setFormError(null)
-    try {
-      await deleteItem({ variables: { id } })
-      if (showingSearch) {
-        runSearch({ variables: { search } })
-      }
-    } catch (err) {
-      setFormError(err.message || 'Could not delete.')
     }
   }
 
@@ -138,92 +146,243 @@ function FreezerApp() {
     setUseSearchResults(true)
   }
 
+  async function handleDelete(id) {
+    setFormError(null)
+    try {
+      await deleteItem({ variables: { id } })
+    } catch (err) {
+      setFormError(err.message || 'Could not delete.')
+    }
+  }
+
+  function goHome() {
+    setView('home')
+    setFormError(null)
+    setUseSearchResults(false)
+    setSearch('')
+    setCategoryFilter(null)
+  }
+
+  function openList(category = null) {
+    setCategoryFilter(category)
+    setUseSearchResults(false)
+    setSearch('')
+    setView('list')
+  }
+
   return (
     <div className="FreezerApp">
-      <h1>Freezer tracker</h1>
-      <p className="lede">Kitchen and garage. Add it when it goes in; remove it when it’s gone.</p>
+      <h1>What’s in the freezer</h1>
+      <p className="lede">Open the door, then pick a pack — that’s the menu, not the food.</p>
 
       {loading ? <p>Loading…</p> : null}
-      {loadError ? <p className="error">Can’t reach the server. Is it running on port 4000? {loadError}</p> : null}
+      {loadError ? (
+        <p className="error">Can’t reach the server. Is it running on port 4000? {loadError}</p>
+      ) : null}
       {formError ? <p className="error">{formError}</p> : null}
       {addState.error ? <p className="error">{addState.error.message}</p> : null}
 
-      <form className="search" onSubmit={handleSearch}>
-        <input
-          type="text"
-          placeholder="Search (e.g. chicken)"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-        <button type="submit">Search</button>
-        {showingSearch ? (
-          <button
-            type="button"
-            onClick={() => {
-              setSearch('')
-              setUseSearchResults(false)
-              itemsQuery.refetch()
-            }}
-          >
-            Show all
+      {view === 'home' ? (
+        <>
+          <p className="hint">Click the door to open it.</p>
+          <div className="row">
+            <div className="unit">
+              <div className={doorOpen ? 'cabinet open' : 'cabinet'}>
+                <div className="interior">
+                  <div className="shelf">
+                    <div className="shelf-label">Look</div>
+                    <button
+                      type="button"
+                      className="pack action"
+                      style={{ background: '#f4d35e', color: '#111' }}
+                      onClick={() => openList()}
+                    >
+                      See what’s in there
+                      <small>Kitchen + garage</small>
+                    </button>
+                  </div>
+                  <div className="shelf">
+                    <div className="shelf-label">By type</div>
+                    {categories.map((c, i) => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        className="pack action"
+                        style={{ background: CAT_PACK[i % CAT_PACK.length], color: '#111' }}
+                        onClick={() => openList(c)}
+                      >
+                        See {c.name.toLowerCase()}
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      className="pack action"
+                      style={{ background: '#ff6b6b', color: '#111' }}
+                      onClick={() => {
+                        runSoon({ variables: { months: 6 } })
+                        setView('soon')
+                      }}
+                    >
+                      Use these soon
+                      <small>About 6 months in</small>
+                    </button>
+                  </div>
+                  <div className="shelf">
+                    <div className="shelf-label">Change</div>
+                    <button
+                      type="button"
+                      className="pack action"
+                      style={{ background: '#7dce82', color: '#111' }}
+                      onClick={() => setView('add')}
+                    >
+                      Add an item
+                      <small>Opens a form</small>
+                    </button>
+                    <button
+                      type="button"
+                      className="pack action"
+                      style={{ background: '#ff9f7a', color: '#111' }}
+                      onClick={() => setView('use')}
+                    >
+                      Use an item
+                      <small>Eat / toss</small>
+                    </button>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="door"
+                  aria-expanded={doorOpen}
+                  aria-label={doorOpen ? 'Close freezer' : 'Open freezer'}
+                  onClick={() => setDoorOpen((open) => !open)}
+                >
+                  <span className="door-label">{doorOpen ? '' : 'Open'}</span>
+                  <span className="handle" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      ) : null}
+
+      {view === 'list' ? (
+        <section className="panel">
+          <button type="button" className="ghost" onClick={goHome}>
+            ← Back to the freezer
           </button>
-        ) : null}
-      </form>
-      {searchQuery.loading ? <p>Searching…</p> : null}
+          <h2>{categoryFilter ? `See ${categoryFilter.name.toLowerCase()}` : 'What’s in there'}</h2>
+          {!categoryFilter ? (
+            <>
+              <form className="search" onSubmit={handleSearch}>
+                <input
+                  type="text"
+                  placeholder="Search (e.g. chicken)"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+                <button type="submit">Search</button>
+                {showingSearch ? (
+                  <button
+                    type="button"
+                    className="ghost"
+                    onClick={() => {
+                      setSearch('')
+                      setUseSearchResults(false)
+                      itemsQuery.refetch()
+                    }}
+                  >
+                    Show all
+                  </button>
+                ) : null}
+              </form>
+              {searchQuery.loading ? <p>Searching…</p> : null}
+            </>
+          ) : null}
+          <ItemTable items={list} />
+        </section>
+      ) : null}
 
-      <h2>{showingSearch ? 'Search results' : 'What’s in there'}</h2>
-      <ItemTable
-        items={list}
-        onDelete={handleDelete}
-        deleting={deleteState.loading}
-      />
+      {view === 'soon' ? (
+        <section className="panel">
+          <button type="button" className="ghost" onClick={goHome}>
+            ← Back to the freezer
+          </button>
+          <h2>Use these soon</h2>
+          <p className="lede">Frozen about 6 months or longer — eat these first.</p>
+          {soonQuery.loading ? <p>Loading…</p> : null}
+          {soonQuery.error ? <p className="error">{soonQuery.error.message}</p> : null}
+          <ItemTable items={soonQuery.data?.expiringSoon ?? []} />
+        </section>
+      ) : null}
 
-      <h2>Put something in</h2>
-      <form className="add" onSubmit={handleAdd}>
-        <label>
-          Name
-          <input value={name} onChange={(e) => setName(e.target.value)} />
-        </label>
-        <label>
-          Date in
-          <input type="date" value={frozenOn} onChange={(e) => setFrozenOn(e.target.value)} />
-        </label>
-        <label>
-          Weight (lbs)
-          <input
-            type="number"
-            step="0.1"
-            min="0"
-            value={weight}
-            onChange={(e) => setWeight(e.target.value)}
+      {view === 'use' ? (
+        <section className="panel">
+          <button type="button" className="ghost" onClick={goHome}>
+            ← Back to the freezer
+          </button>
+          <h2>Use an item</h2>
+          <p className="lede">Eat / toss takes it out of the list.</p>
+          <ItemTable
+            items={allItems}
+            onDelete={handleDelete}
+            deleting={deleteState.loading}
           />
-        </label>
-        <label>
-          Category
-          <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
-            <option value="">Choose…</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Freezer
-          <select value={freezerId} onChange={(e) => setFreezerId(e.target.value)}>
-            <option value="">Choose…</option>
-            {freezers.map((f) => (
-              <option key={f.id} value={f.id}>
-                {f.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <button type="submit" disabled={addState.loading}>
-          {addState.loading ? 'Saving…' : 'Add'}
-        </button>
-      </form>
+        </section>
+      ) : null}
+
+      {view === 'add' ? (
+        <section className="panel">
+          <button type="button" className="ghost" onClick={goHome}>
+            ← Back to the freezer
+          </button>
+          <h2>Put something in</h2>
+          <form className="add" onSubmit={handleAdd}>
+            <label>
+              Name
+              <input value={name} onChange={(e) => setName(e.target.value)} />
+            </label>
+            <label>
+              Date in
+              <input type="date" value={frozenOn} onChange={(e) => setFrozenOn(e.target.value)} />
+            </label>
+            <label>
+              Weight (lbs)
+              <input
+                type="number"
+                step="0.1"
+                min="0"
+                value={weight}
+                onChange={(e) => setWeight(e.target.value)}
+              />
+            </label>
+            <label>
+              Category
+              <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
+                <option value="">Choose…</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Which freezer
+              <select value={freezerId} onChange={(e) => setFreezerId(e.target.value)}>
+                <option value="">Kitchen or garage…</option>
+                {freezers.map((f) => (
+                  <option key={f.id} value={f.id}>
+                    {f.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button type="submit" disabled={addState.loading}>
+              {addState.loading ? 'Saving…' : 'Add'}
+            </button>
+          </form>
+        </section>
+      ) : null}
     </div>
   )
 }

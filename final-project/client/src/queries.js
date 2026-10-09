@@ -54,6 +54,23 @@ export const ITEMS_BY_NAME = gql`
   }
 `
 
+export const EXPIRING_SOON = gql`
+  query ExpiringSoon($months: Int!) {
+    expiringSoon(months: $months) {
+      id
+      name
+      frozenOn
+      weight
+      category {
+        name
+      }
+      freezer {
+        name
+      }
+    }
+  }
+`
+
 export const ADD_ITEM = gql`
   mutation AddItem(
     $name: String!
