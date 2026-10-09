@@ -1,0 +1,56 @@
+.FreezerApp {
+  max-width: 48rem;
+  margin: 2rem auto;
+  padding: 0 1rem 3rem;
+  font-family: system-ui, sans-serif;
+}
+
+.lede {
+  color: #444;
+  margin-bottom: 1.5rem;
+}
+
+.error {
+  color: #b91c1c;
+  font-weight: 600;
+}
+
+.search,
+.add {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: flex-end;
+  margin-bottom: 1.25rem;
+}
+
+.add label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+}
+
+input,
+select,
+button {
+  font: inherit;
+  padding: 0.4rem 0.6rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 2rem;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 0.4rem 0.5rem;
+  border-bottom: 1px solid #ddd;
+}
+
+button {
+  cursor: pointer;
+}

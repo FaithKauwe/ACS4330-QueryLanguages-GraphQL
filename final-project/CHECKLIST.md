@@ -155,20 +155,21 @@ Restarting `npm start` resets the list to the seed data. That is normal.
 
 ### Class 10 — in-memory MVP
 
-- [ ] Manual tests B–F above
-- [ ] Push `final-project/server/`
-- [ ] Mark tracker if they want an L10 check
+- [x] Manual tests B–F above
+- [x] Push `final-project/server/`
+- [x] Mark tracker if they want an L10 check
 
 MongoDB is on the **course schedule** and listed as **stretch** on the project spec. Skip until/unless you have time or the instructor requires it.
 
 ### Class 11 — React client
 
-- [ ] Vite app in `final-project/client/`
-- [ ] `ApolloProvider` pointing at http://localhost:4000/
-- [ ] List items (category + freezer names)
-- [ ] At least one query with **variables** (`useLazyQuery` or `useQuery`)
-- [ ] Form or button that runs **addItem** or **deleteItem**
-- [ ] Loading and error UI (no blank crash)
+- [x] Vite app in `final-project/client/`
+- [x] `ApolloProvider` pointing at http://localhost:4000/
+- [x] List items (category + freezer names)
+- [x] At least one query with **variables** (`useLazyQuery` or `useQuery`)
+- [x] Form or button that runs **addItem** or **deleteItem**
+- [x] Loading and error UI (no blank crash)
+- [ ] You: run the app and click through list / search / add / delete
 
 Two terminals again: `final-project/server` → 4000, `final-project/client` → 5173. Test in the **app**, not only Sandbox.
 
