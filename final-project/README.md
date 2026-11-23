@@ -41,7 +41,7 @@ Open [http://localhost:5173](http://localhost:5173) (or whatever Local URL Vite 
    - **Use an item** — eat / toss (deletes from the in-memory list)
 3. **Back to the freezer** returns to the door.
 
-Data lives in memory on the server. Restarting `npm start` in `server/` resets the list to the seed food.
+Data lives in MongoDB (Atlas). Restarting the server keeps items. First run seeds categories, Kitchen/Garage, and a few sample packs if the database is empty. Put `MONGO_URI` in `server/.env` and do not commit that file. Pets and freezer cannot both use port 4000 at once.
 
 ## If something doesn’t load
 
