@@ -91,9 +91,11 @@ export const ADD_ITEM = gql`
       frozenOn
       weight
       category {
+        id
         name
       }
       freezer {
+        id
         name
       }
     }

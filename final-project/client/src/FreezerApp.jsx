@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { gql } from '@apollo/client'
 import { useQuery, useLazyQuery, useMutation } from '@apollo/client/react'
 import {
   GET_ITEMS,
@@ -36,7 +37,7 @@ function ItemTable({ items, onDelete, deleting }) {
       </thead>
       <tbody>
         {items.map((item) => (
-          <tr key={item.id}>
+          <tr key={item.id} style={{ opacity: String(item.id).startsWith('temp-') ? 0.5 : 1 }}>
             <td>{item.name}</td>
             <td>{item.frozenOn}</td>
             <td>{item.weight}</td>
@@ -47,7 +48,7 @@ function ItemTable({ items, onDelete, deleting }) {
                 <button
                   type="button"
                   disabled={deleting}
-                  onClick={() => onDelete(item.id)}
+                  onClick={() => onDelete(item)}
                 >
                   Eat / toss
                 </button>
@@ -85,10 +86,43 @@ function FreezerApp() {
   })
 
   const [addItem, addState] = useMutation(ADD_ITEM, {
-    refetchQueries: [{ query: GET_ITEMS }]
+    update(cache, { data }) {
+      if (!data?.addItem) return
+      cache.modify({
+        fields: {
+          items(existing = []) {
+            const newRef = cache.writeFragment({
+              data: data.addItem,
+              fragment: gql`
+                fragment NewItem on FrozenItem {
+                  id
+                  name
+                  frozenOn
+                  weight
+                  category {
+                    id
+                    name
+                  }
+                  freezer {
+                    id
+                    name
+                  }
+                }
+              `,
+            })
+            return [...existing, newRef]
+          },
+        },
+      })
+    },
   })
   const [deleteItem, deleteState] = useMutation(DELETE_ITEM, {
-    refetchQueries: [{ query: GET_ITEMS }]
+    update(cache, _result, { variables }) {
+      cache.evict({
+        id: cache.identify({ __typename: 'FrozenItem', id: variables.id }),
+      })
+      cache.gc()
+    },
   })
 
   const categories = categoriesQuery.data?.categories ?? []
@@ -118,6 +152,8 @@ function FreezerApp() {
       setFormError('Fill in name, weight, category, and freezer.')
       return
     }
+    const category = categories.find((c) => c.id === categoryId)
+    const freezer = freezers.find((f) => f.id === freezerId)
     try {
       await addItem({
         variables: {
@@ -126,7 +162,26 @@ function FreezerApp() {
           weight: lbs,
           categoryId,
           freezerId
-        }
+        },
+        optimisticResponse: {
+          addItem: {
+            __typename: 'FrozenItem',
+            id: `temp-${Date.now()}`,
+            name: name.trim(),
+            frozenOn,
+            weight: lbs,
+            category: {
+              __typename: 'Category',
+              id: categoryId,
+              name: category?.name ?? '',
+            },
+            freezer: {
+              __typename: 'Freezer',
+              id: freezerId,
+              name: freezer?.name ?? '',
+            },
+          },
+        },
       })
       setName('')
       setWeight('')
@@ -146,10 +201,19 @@ function FreezerApp() {
     setUseSearchResults(true)
   }
 
-  async function handleDelete(id) {
+  async function handleDelete(item) {
     setFormError(null)
     try {
-      await deleteItem({ variables: { id } })
+      await deleteItem({
+        variables: { id: item.id },
+        optimisticResponse: {
+          deleteItem: {
+            __typename: 'FrozenItem',
+            id: item.id,
+            name: item.name,
+          },
+        },
+      })
     } catch (err) {
       setFormError(err.message || 'Could not delete.')
     }
